@@ -283,12 +283,26 @@ def solution_to_string(solution, grid_size=None):
     
     # Infer grid_size from solution if not provided
     if grid_size is None:
-        max_row = max(row for row, col in solution.keys()) if solution else 0
-        max_col = max(col for row, col in solution.keys()) if solution else 0
+        if not solution:
+            return None
+        max_row = max(row for row, col in solution.keys())
+        max_col = max(col for row, col in solution.keys())
         grid_size = max(max_row, max_col) + 1
     
-    result = [''] * (grid_size * grid_size)
+    result = ['.'] * (grid_size * grid_size)
     for (row, col), value in solution.items():
+        # Handle case where value might be a set (from domains)
+        if isinstance(value, set):
+            if len(value) == 1:
+                value = next(iter(value))
+            else:
+                # Multiple values in set - this shouldn't happen in a complete solution
+                raise ValueError(f"Variable ({row}, {col}) has multiple values: {value}")
+        
+        # Ensure value is an integer
+        if not isinstance(value, int):
+            raise TypeError(f"Variable ({row}, {col}) has non-integer value: {value} (type: {type(value)})")
+        
         result[row * grid_size + col] = _val_to_char(value, grid_size)
     return ''.join(result)
 
@@ -390,23 +404,22 @@ def mrv_nary(assignment, csp, domains):
 
 def lcv_nary(var, assignment, csp, domains):
     """Least-constraining-values heuristic for NaryCSP"""
-    # Count how many values would be eliminated for each value
-    def count_eliminations(val):
-        eliminations = 0
-        for const in csp.var_to_const[var]:
-            # Count how many other variables would lose values if var=val
-            for other_var in const.scope:
-                if other_var != var and other_var not in assignment:
-                    # Check if any value in other_var's domain would become invalid
-                    test_assignment = assignment.copy()
-                    test_assignment[var] = val
-                    for other_val in domains[other_var]:
-                        test_assignment[other_var] = other_val
-                        if not const.holds(test_assignment):
-                            eliminations += 1
-        return eliminations
+    # For n-ary constraints, LCV is complex to compute accurately
+    # Use a simplified version: count how many constraints involve this variable
+    # and prefer values that appear less frequently in other variables' domains
     
-    return sorted(domains[var], key=count_eliminations)
+    def count_constraints(val):
+        # Count how many unassigned neighbors share this value in their domain
+        constraint_count = 0
+        for const in csp.var_to_const[var]:
+            other_vars = [v for v in const.scope if v != var and v not in assignment]
+            for other_var in other_vars:
+                if val in domains[other_var]:
+                    constraint_count += 1
+        return constraint_count
+    
+    # Sort by constraint count (lower is better - least constraining)
+    return sorted(domains[var], key=count_constraints)
 
 
 def gac_inference(csp, var, value, assignment, domains, ac_solver):
@@ -626,6 +639,10 @@ def process_chunk(args):
                 
                 # Validate solution AFTER timing
                 if solution:
+                    # Check if solution is complete (all variables assigned)
+                    if len(solution) != grid_size * grid_size:
+                        raise ValueError(f"Incomplete solution: {len(solution)}/{grid_size * grid_size} variables assigned")
+                    
                     stats['solved'] += 1
                     solution_str = solution_to_string(solution, grid_size)
                     output_row['computed_solution'] = solution_str
