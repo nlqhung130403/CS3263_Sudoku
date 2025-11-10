@@ -564,10 +564,10 @@ if __name__ == "__main__":
     import argparse
     
     parser = argparse.ArgumentParser(description='Train Q-Learning model on training set, then solve test set')
-    parser.add_argument('--train', default='test_set/sudoku_train_set_random_10k.csv',
-                       help='Path to training CSV file (default: test_set/sudoku_train_set_random_10k.csv)')
-    parser.add_argument('--test', default='test_set/sudoku_test_set_random_10k.csv',
-                       help='Path to test CSV file (default: test_set/sudoku_test_set_random_10k.csv)')
+    parser.add_argument('--train', default='../test_set/sudoku_train_set_random_10k.csv',
+                       help='Path to training CSV file (default: ../test_set/sudoku_train_set_random_10k.csv)')
+    parser.add_argument('--test', default='../test_set/sudoku_test_set_random_10k.csv',
+                       help='Path to test CSV file (default: ../test_set/sudoku_test_set_random_10k.csv)')
     parser.add_argument('--output', default=None,
                        help='Path to output CSV file (default: test_filename_rl_results_timestamp.csv)')
     parser.add_argument('--max-train', type=int, default=None,
