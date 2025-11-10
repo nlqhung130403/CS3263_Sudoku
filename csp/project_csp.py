@@ -12,7 +12,7 @@ from collections import defaultdict
 from datetime import datetime
 from multiprocessing import Pool, cpu_count
 
-from csp import CSP, backtracking_search, mrv, lcv, forward_checking, mac, AC3
+from csp import CSP, backtracking_search, mrv, lcv, forward_checking, mac
 
 
 def parse_sudoku(puzzle_string):
@@ -186,21 +186,6 @@ def solve_sudoku_csp(csp, inference_method):
     Returns:
         Dictionary mapping (row, col) tuples to values, or None if no solution exists
     """
-    # For MAC on large puzzles (16x16+), use AC3 instead of AC3b for better performance
-    # AC3b's double-support checking can be too slow for very large constraint graphs
-    if inference_method == mac:
-        grid_size = int(len(csp.variables) ** 0.5)
-        import sys
-        print(f"[Worker] Grid size: {grid_size}, using MAC", file=sys.stderr, flush=True)
-        if grid_size >= 16:
-            # Use AC3 instead of AC3b for large puzzles
-            print(f"[Worker] WARNING: MAC is very slow for {grid_size}x{grid_size} puzzles. Consider using Forward Checking (--method fc) instead.", file=sys.stderr, flush=True)
-            print(f"[Worker] Using AC3 instead of AC3b for large puzzle", file=sys.stderr, flush=True)
-            mac_with_ac3 = lambda csp, var, value, assignment, removals: mac(
-                csp, var, value, assignment, removals, constraint_propagation=AC3
-            )
-            inference_method = mac_with_ac3
-    
     # Use backtracking search with heuristics:
     # - MRV (Minimum Remaining Values): select variable with fewest legal values
     #   This reduces branching factor by trying constrained variables first
@@ -324,10 +309,6 @@ def process_chunk(args):
     """
     chunk_id, chunk_rows, temp_dir, inference_method = args
     
-    # Debug: Print which chunk is starting
-    import sys
-    print(f"[Worker {chunk_id}] Starting to process {len(chunk_rows)} puzzle(s)", file=sys.stderr, flush=True)
-    
     # Create temp file for this chunk
     temp_file = os.path.join(temp_dir, f'chunk_{chunk_id}.csv')
     
@@ -345,8 +326,6 @@ def process_chunk(args):
     with open(temp_file, 'w', newline='') as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
-        f.flush()  # Ensure header is written immediately
-        os.fsync(f.fileno())  # Force write to disk
         
         for row in chunk_rows:
             stats['total'] += 1
@@ -359,10 +338,8 @@ def process_chunk(args):
                 difficulty = row.get('difficulty', '')
                 
                 # Preprocessing: Create CSP (this is excluded from timing)
-                print(f"[Worker {chunk_id}] Creating CSP for puzzle {puzzle_id}...", file=sys.stderr, flush=True)
                 csp = create_sudoku_csp(puzzle)
                 grid_size = int(len(puzzle) ** 0.5)
-                print(f"[Worker {chunk_id}] CSP created, starting solve...", file=sys.stderr, flush=True)
                 
                 # Measure solve time independently in this process
                 # Use perf_counter() instead of time() to avoid issues with system clock adjustments
@@ -371,7 +348,6 @@ def process_chunk(args):
                 start_time = time.perf_counter()
                 solution = solve_sudoku_csp(csp, inference_method)
                 solve_time = time.perf_counter() - start_time
-                print(f"[Worker {chunk_id}] Solve completed in {solve_time:.6f}s", file=sys.stderr, flush=True)
                 
                 # Ensure non-negative (shouldn't happen with perf_counter, but safety check)
                 if solve_time < 0:
