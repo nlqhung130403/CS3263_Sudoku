@@ -9,6 +9,7 @@ matplotlib
 networkx
 numpy
 opencv-python
+ortools
 pandas
 pillow
 pytest-cov

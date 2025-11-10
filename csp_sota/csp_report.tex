@@ -1,6 +1,6 @@
-\subsection{Constraint Satisfaction Problems}
+\section{Constraint Satisfaction Problems}
 
-\subsubsection{CSP Formulation for Sudoku}
+\subsection{CSP Formulation for Sudoku}
 
 A Constraint Satisfaction Problem (CSP) consists of three components: $X$, $D$, and $C$.
 
@@ -32,26 +32,28 @@ The \texttt{CSP} class encapsulates the problem structure:
     \item \texttt{constraints}: A function that checks if a value assignment satisfies the constraint between two variables
 \end{itemize}
 
-% The \texttt{create\_sudoku\_csp()} function constructs the CSP instance from a puzzle string by:
-% \begin{enumerate}
-%     \item Parsing the 81-character puzzle string into a $9 \times 9$ grid
-%     \item Creating variables for all 81 cells
-%     \item Initializing domains: pre-filled cells have single-value domains, empty cells have domain $\{1, \ldots, 9\}$
-%     \item Building the neighbor relationships: for each cell, identifying all cells in the same row, column, or $3 \times 3$ box
-%     \item Defining the binary constraint function that enforces $v_i \neq v_j$ for neighboring cells
-% \end{enumerate}
+The \texttt{create\_sudoku\_csp()} function constructs the CSP instance from a puzzle string by:
+\begin{enumerate}
+    \item Parsing the 81-character puzzle string into a $9 \times 9$ grid
+    \item Creating variables for all 81 cells
+    \item Initializing domains: pre-filled cells have single-value domains, empty cells have domain $\{1, \ldots, 9\}$
+    \item Building the neighbor relationships: for each cell, identifying all cells in the same row, column, or $3 \times 3$ box
+    \item Defining the binary constraint function that enforces $v_i \neq v_j$ for neighboring cells
+\end{enumerate}
 
 \subsubsection{Backtracking Search Algorithm}
 
 The core search algorithm follows the standard backtracking framework shown in Algorithm~\ref{alg:backtrack}. The \texttt{backtracking\_search()} function implements this recursive procedure:
 
-% \textbf{Key Ideas:} Backtracking search systematically explores the space of possible assignments by building a partial solution incrementally. At each recursive call, the algorithm checks if the current assignment is complete (all 81 cells filled). If not, it selects an unassigned variable using a heuristic (typically MRV), then tries each legal value for that variable in order (typically using LCV). For each value, it checks consistency with the current assignment, then makes the assignment and performs constraint propagation (inference) to prune inconsistent values from other variables' domains. If inference succeeds (no domain becomes empty), it recursively continues the search. If the recursive call returns a solution, that solution is propagated back up. If no solution is found with the current value, the algorithm backtracks by undoing the inference (restoring pruned values) and unassigning the variable, then tries the next value. This process continues until either a complete solution is found or all possibilities are exhausted. The key insight is that backtracking allows the algorithm to efficiently explore the search space by abandoning partial assignments that cannot lead to a solution, rather than exhaustively enumerating all possible complete assignments.
+\textbf{Key Ideas:} Backtracking search systematically explores the space of possible assignments by building a partial solution incrementally. At each recursive call, the algorithm checks if the current assignment is complete (all 81 cells filled). If not, it selects an unassigned variable using a heuristic (typically MRV), then tries each legal value for that variable in order (typically using LCV). For each value, it checks consistency with the current assignment, then makes the assignment and performs constraint propagation (inference) to prune inconsistent values from other variables' domains. If inference succeeds (no domain becomes empty), it recursively continues the search. If the recursive call returns a solution, that solution is propagated back up. If no solution is found with the current value, the algorithm backtracks by undoing the inference (restoring pruned values) and unassigning the variable, then tries the next value. This process continues until either a complete solution is found or all possibilities are exhausted. The key insight is that backtracking allows the algorithm to efficiently explore the search space by abandoning partial assignments that cannot lead to a solution, rather than exhaustively enumerating all possible complete assignments.
 
 \allowdisplaybreaks
-\begin{algorithm}
+\begin{algorithm}[htbp]
 \caption{Backtracking Search for CSP}
 \label{alg:backtrack}
-
+\makeatletter
+\renewcommand{\ALC@no}{\relax}
+\makeatother
 \begin{algorithmic}
 \Function{BACKTRACKING-SEARCH}{csp}
     \State \Return \Call{BACKTRACK}{csp, $\{\}$}
@@ -97,13 +99,15 @@ The \texttt{INFERENCE} step in backtracking search performs constraint propagati
 
 \textbf{Forward Checking (FC):} The \texttt{forward\_checking()} function, shown in Algorithm~\ref{alg:fc}, prunes values from the domains of unassigned neighbors that are inconsistent with the current assignment. After assigning $var = value$, it checks each neighbor $B$ and removes any value $b$ from $B$'s domain that violates the constraint with $(var, value)$.
 
-% \textbf{Key Ideas:} Forward checking performs \emph{local} constraint propagation immediately after each assignment. The algorithm iterates through all neighbors of the newly assigned variable. For each unassigned neighbor $B$, it examines every value $b$ in $B$'s current domain. If the constraint between $(var, value)$ and $(B, b)$ is violated (in Sudoku, this means $value = b$), then $b$ is pruned from $B$'s domain. This pruning is recorded in a removals list so it can be undone during backtracking. If any neighbor's domain becomes empty after pruning, forward checking immediately returns failure, signaling that the current assignment cannot lead to a solution. This early failure detection is crucial for efficient backtracking. The key limitation of FC is that it only checks direct neighbors of the assigned variable; it does not propagate constraints further through the network. However, for Sudoku's binary constraint structure, this local pruning is often sufficient because the most informative constraint violations occur immediately between neighboring cells.
+\textbf{Key Ideas:} Forward checking performs \emph{local} constraint propagation immediately after each assignment. The algorithm iterates through all neighbors of the newly assigned variable. For each unassigned neighbor $B$, it examines every value $b$ in $B$'s current domain. If the constraint between $(var, value)$ and $(B, b)$ is violated (in Sudoku, this means $value = b$), then $b$ is pruned from $B$'s domain. This pruning is recorded in a removals list so it can be undone during backtracking. If any neighbor's domain becomes empty after pruning, forward checking immediately returns failure, signaling that the current assignment cannot lead to a solution. This early failure detection is crucial for efficient backtracking. The key limitation of FC is that it only checks direct neighbors of the assigned variable; it does not propagate constraints further through the network. However, for Sudoku's binary constraint structure, this local pruning is often sufficient because the most informative constraint violations occur immediately between neighboring cells.
 
 \allowdisplaybreaks
 \begin{algorithm}[htbp]
 \caption{Forward Checking}
 \label{alg:fc}
-
+\makeatletter
+\renewcommand{\ALC@no}{\relax}
+\makeatother
 \begin{algorithmic}
 \Function{FORWARD-CHECKING}{csp, $var$, $value$, assignment, removals}
     \State \Call{SUPPORT-PRUNING}{csp}
@@ -131,7 +135,9 @@ The \texttt{INFERENCE} step in backtracking search performs constraint propagati
 \begin{algorithm}[htbp]
 \caption{Maintaining Arc Consistency (MAC) with AC-3b}
 \label{alg:mac}
-
+\makeatletter
+\renewcommand{\ALC@no}{\relax}
+\makeatother
 \begin{algorithmic}
 \Function{MAC}{csp, $var$, $value$, assignment, removals}
     \State $queue \gets$ empty queue
@@ -196,7 +202,7 @@ The \texttt{INFERENCE} step in backtracking search performs constraint propagati
 \end{algorithmic}
 \end{algorithm}
 
-% \textbf{Key Ideas:} MAC enforces \emph{global} arc consistency on the entire constraint network after each assignment. An arc $(X_i, X_j)$ is arc-consistent if for every value $x$ in $X_i$'s domain, there exists at least one value $y$ in $X_j$'s domain such that the constraint between $(X_i, x)$ and $(X_j, y)$ is satisfied. MAC uses AC-3b to achieve this: it maintains a queue of arcs that need to be checked for consistency. When an arc $(X_i, X_j)$ is processed, the algorithm revises $X_i$'s domain by removing any value $x$ that has no supporting value in $X_j$'s domain. If $X_i$'s domain changes, all arcs pointing to $X_i$ (i.e., $(X_k, X_i)$ for neighbors $X_k$) are added back to the queue, since those arcs may now be inconsistent. This process continues until the queue is empty or a domain becomes empty (indicating inconsistency).
+\textbf{Key Ideas:} MAC enforces \emph{global} arc consistency on the entire constraint network after each assignment. An arc $(X_i, X_j)$ is arc-consistent if for every value $x$ in $X_i$'s domain, there exists at least one value $y$ in $X_j$'s domain such that the constraint between $(X_i, x)$ and $(X_j, y)$ is satisfied. MAC uses AC-3b to achieve this: it maintains a queue of arcs that need to be checked for consistency. When an arc $(X_i, X_j)$ is processed, the algorithm revises $X_i$'s domain by removing any value $x$ that has no supporting value in $X_j$'s domain. If $X_i$'s domain changes, all arcs pointing to $X_i$ (i.e., $(X_k, X_i)$ for neighbors $X_k$) are added back to the queue, since those arcs may now be inconsistent. This process continues until the queue is empty or a domain becomes empty (indicating inconsistency).
 
 \textbf{AC-3b Double-Support Heuristic:} AC-3b improves upon AC-3 by using a ``double-support'' optimization. When checking if a value $v_i$ in $X_i$'s domain has support in $X_j$'s domain, AC-3b partitions $X_j$'s domain into three sets: $S_{j,p}$ (values already known to be supported by $X_i$), $S_{j,u}$ (unknown support status), and values already pruned. The algorithm first checks values in $S_{j,u}$ against $v_i$ because finding support here benefits both variables simultaneously (double-support check). Only if no support is found in $S_{j,u}$ does it check values in $S_{j,p}$ (single-support check). This ordering reduces redundant constraint checks and can improve average-case performance, though the worst-case complexity remains $O(ed^2)$ where $e$ is the number of arcs and $d$ is the domain size. Additionally, AC-3b processes arcs bidirectionally: when revising arc $(X_i, X_j)$, it also checks and potentially revises arc $(X_j, X_i)$ if it's in the queue, further propagating constraints efficiently.
 

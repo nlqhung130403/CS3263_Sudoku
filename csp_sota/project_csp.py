@@ -1,6 +1,7 @@
 """
-Sudoku CSP Solver using Backtracking Search
+Sudoku CSP Solver using Backtracking Search with AC3/FC
 Supports both Forward Checking (FC) and Maintaining Arc Consistency (MAC)
+Uses pure CSP techniques: AC3 (Arc Consistency) and Forward Checking
 
 """
 
@@ -166,14 +167,14 @@ def create_sudoku_csp(puzzle_string):
 
 def solve_sudoku_csp(csp, inference_method):
     """
-    Solve a Sudoku CSP using backtracking search.
+    Solve a Sudoku CSP using backtracking search with AC3/FC.
     
     The backtracking algorithm follows this structure:
     1. If assignment is complete, return it (base case)
     2. Select an unassigned variable (using MRV heuristic)
     3. For each value in domain (ordered by LCV heuristic):
        a. Check if value is consistent with current assignment
-       b. If consistent, assign value and perform inference (FC or MAC)
+       b. If consistent, assign value and perform inference (FC or MAC/AC3)
        c. Recursively try to complete the assignment
        d. If recursion succeeds, return solution
        e. Otherwise, undo inference and try next value
@@ -182,6 +183,8 @@ def solve_sudoku_csp(csp, inference_method):
     Args:
         csp: CSP instance for the Sudoku puzzle
         inference_method: Inference function to use (forward_checking or mac)
+                         - forward_checking: Uses FC (Forward Checking)
+                         - mac: Uses MAC (Maintaining Arc Consistency) with AC3
     
     Returns:
         Dictionary mapping (row, col) tuples to values, or None if no solution exists
@@ -192,6 +195,8 @@ def solve_sudoku_csp(csp, inference_method):
     # - LCV (Least Constraining Value): try values that rule out fewest options first
     #   This keeps more options open for future assignments
     # - Inference method (FC or MAC): propagates constraints
+    #   - FC: Forward Checking - removes inconsistent values from neighbors
+    #   - MAC: Maintaining Arc Consistency - uses AC3 to maintain arc consistency
     solution = backtracking_search(
         csp,
         select_unassigned_variable=mrv,
@@ -204,13 +209,15 @@ def solve_sudoku_csp(csp, inference_method):
 
 def solve_sudoku(puzzle_string, inference_method):
     """
-    Solve a Sudoku puzzle using backtracking search.
+    Solve a Sudoku puzzle using backtracking search with AC3/FC.
     This function creates the CSP and then solves it.
     For timing purposes, use create_sudoku_csp() and solve_sudoku_csp() separately.
     
     Args:
         puzzle_string: String of N×N characters representing the puzzle
         inference_method: Inference function to use (forward_checking or mac)
+                         - forward_checking: Uses FC (Forward Checking)
+                         - mac: Uses MAC (Maintaining Arc Consistency) with AC3
     
     Returns:
         Dictionary mapping (row, col) tuples to values, or None if no solution exists
@@ -294,8 +301,8 @@ def print_sudoku(puzzle_string):
 
 def process_chunk(args):
     """
-    Process a chunk of puzzles in parallel. Each worker processes independently
-    and writes to its own temp file to avoid race conditions.
+    Process a chunk of puzzles in parallel using CSP backtracking with AC3/FC.
+    Each worker processes independently and writes to its own temp file to avoid race conditions.
     
     Args:
         args: Tuple of (chunk_id, chunk_rows, temp_dir, inference_method)
@@ -303,6 +310,8 @@ def process_chunk(args):
             chunk_rows: List of puzzle rows to process
             temp_dir: Directory for temporary output files
             inference_method: Inference function to use (forward_checking or mac)
+                             - forward_checking: Uses FC (Forward Checking)
+                             - mac: Uses MAC (Maintaining Arc Consistency) with AC3
     
     Returns:
         Tuple of (temp_file_path, stats_dict)
