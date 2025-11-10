@@ -1,0 +1,18 @@
+{
+  "name": "sudoku-sa",
+  "version": "1.0.0",
+  "main": "main.ts",
+  "scripts": {
+    "start": "tsx main.ts"
+  },
+  "dependencies": {
+    "lodash": "^4.17.21",
+    "csv-parser": "^3.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.16.0",
+    "@types/node": "^20.11.30"
+  }
+}
