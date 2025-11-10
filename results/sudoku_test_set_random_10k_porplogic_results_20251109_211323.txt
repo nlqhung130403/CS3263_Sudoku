@@ -1,0 +1,62 @@
+
+============================================================
+Processing results from: /Users/celeschai/Library/Mobile Documents/com~apple~CloudDocs/Current Modules/CS3263/Project/Project-Sudoku/CS3263_Sudoku/results/sudoku_test_set_random_10k_porplogic_results_20251109_211323.csv
+Computing metrics...
+
+============================================================
+CPU Time (sec)
+============================================================
+                     Propositional Logic (SAT)
+------------------------------------------------------------
+Easy:
+  Minimum:           0.006054       
+  Median:            0.006905       
+  Mean:              0.008256       
+  Maximum:           0.052891       
+------------------------------------------------------------
+Medium:
+  Minimum:           0.006109       
+  Median:            0.006921       
+  Mean:              0.008255       
+  Maximum:           0.077133       
+------------------------------------------------------------
+Hard:
+  Minimum:           0.006027       
+  Median:            0.006979       
+  Mean:              0.008265       
+  Maximum:           0.027706       
+============================================================
+
+Note: Statistics based on 30000 successfully solved puzzles
+  Easy: 9363 puzzles
+  Medium: 10369 puzzles
+  Hard: 10268 puzzles
+
+============================================================
+Overall Statistics
+============================================================
+Total puzzles processed:     30,000
+Successfully solved:        30,000 (100.00%)
+Failed to solve:            0 (0.00%)
+Correct solutions:          30,000 (100.00%)
+Incorrect solutions:        0 (0.00%)
+Solution accuracy:          100.00%
+
+------------------------------------------------------------
+Overall Timing Statistics (seconds)
+------------------------------------------------------------
+Mean solve time:            0.008259
+Median solve time:          0.006935
+Min solve time:             0.006027
+Max solve time:             0.077133
+Standard deviation:         0.002798
+
+Percentiles:
+  25th percentile (Q1):      0.006511
+  50th percentile (median):  0.006935
+  75th percentile (Q3):     0.009147
+  90th percentile:           0.012806
+  95th percentile:           0.013804
+  99th percentile:           0.017745
+
+============================================================
