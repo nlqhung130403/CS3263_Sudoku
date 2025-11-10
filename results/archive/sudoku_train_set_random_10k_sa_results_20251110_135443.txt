@@ -1,0 +1,62 @@
+
+============================================================
+Processing results from: results/archive/sudoku_train_set_random_10k_sa_results_20251110_135443.csv
+Computing metrics...
+
+============================================================
+CPU Time (sec)
+============================================================
+                     SA             
+------------------------------------------------------------
+Easy:
+  Minimum:           0.828208       
+  Median:            0.986168       
+  Mean:              1.045831       
+  Maximum:           1.362409       
+------------------------------------------------------------
+Medium:
+  Minimum:           0.833269       
+  Median:            1.011314       
+  Mean:              1.033403       
+  Maximum:           1.268698       
+------------------------------------------------------------
+Hard:
+  Minimum:           0.734291       
+  Median:            1.124062       
+  Mean:              1.104710       
+  Maximum:           1.344004       
+============================================================
+
+Note: Statistics based on 35 successfully solved puzzles
+  Easy: 7 puzzles
+  Medium: 15 puzzles
+  Hard: 13 puzzles
+
+============================================================
+Overall Statistics
+============================================================
+Total puzzles processed:     30,000
+Successfully solved:        35 (0.12%)
+Failed to solve:            29,965 (99.88%)
+Correct solutions:          35 (0.12%)
+Incorrect solutions:        0 (0.00%)
+Solution accuracy:          100.00%
+
+------------------------------------------------------------
+Overall Timing Statistics (seconds)
+------------------------------------------------------------
+Mean solve time:            1.062374
+Median solve time:          1.057451
+Min solve time:             0.734291
+Max solve time:             1.362409
+Standard deviation:         0.163280
+
+Percentiles:
+  25th percentile (Q1):      0.947706
+  50th percentile (median):  1.057451
+  75th percentile (Q3):     1.199874
+  90th percentile:           1.301956
+  95th percentile:           1.344004
+  99th percentile:           1.362409
+
+============================================================

@@ -1,36 +1,36 @@
 
 ============================================================
-Processing results from: results/archive/sudoku_test_set_random_10k_porplogic_results_20251109_211323.csv
+Processing results from: results/sudoku_train_set_random_10k_glucose3_results_20251110_145323.csv
 Computing metrics...
 
 ============================================================
 CPU Time (sec)
 ============================================================
-                     Propositional Logic (SAT)
+                     Glucose3       
 ------------------------------------------------------------
 Easy:
-  Minimum:           0.006054       
-  Median:            0.006905       
-  Mean:              0.008256       
-  Maximum:           0.052891       
+  Minimum:           0.006091       
+  Median:            0.006926       
+  Mean:              0.008539       
+  Maximum:           0.106521       
 ------------------------------------------------------------
 Medium:
-  Minimum:           0.006109       
-  Median:            0.006921       
-  Mean:              0.008255       
-  Maximum:           0.077133       
+  Minimum:           0.006097       
+  Median:            0.006969       
+  Mean:              0.008586       
+  Maximum:           0.093286       
 ------------------------------------------------------------
 Hard:
-  Minimum:           0.006027       
-  Median:            0.006979       
-  Mean:              0.008265       
-  Maximum:           0.027706       
+  Minimum:           0.006082       
+  Median:            0.007060       
+  Mean:              0.008615       
+  Maximum:           0.077213       
 ============================================================
 
 Note: Statistics based on 30000 successfully solved puzzles
-  Easy: 9363 puzzles
-  Medium: 10369 puzzles
-  Hard: 10268 puzzles
+  Easy: 9351 puzzles
+  Medium: 10377 puzzles
+  Hard: 10272 puzzles
 
 ============================================================
 Overall Statistics
@@ -45,18 +45,18 @@ Solution accuracy:          100.00%
 ------------------------------------------------------------
 Overall Timing Statistics (seconds)
 ------------------------------------------------------------
-Mean solve time:            0.008259
-Median solve time:          0.006935
-Min solve time:             0.006027
-Max solve time:             0.077133
-Standard deviation:         0.002798
+Mean solve time:            0.008581
+Median solve time:          0.006982
+Min solve time:             0.006082
+Max solve time:             0.106521
+Standard deviation:         0.003431
 
 Percentiles:
-  25th percentile (Q1):      0.006511
-  50th percentile (median):  0.006935
-  75th percentile (Q3):     0.009147
-  90th percentile:           0.012806
-  95th percentile:           0.013804
-  99th percentile:           0.017745
+  25th percentile (Q1):      0.006520
+  50th percentile (median):  0.006982
+  75th percentile (Q3):     0.009734
+  90th percentile:           0.013214
+  95th percentile:           0.014851
+  99th percentile:           0.019555
 
 ============================================================

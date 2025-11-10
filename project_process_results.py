@@ -169,6 +169,12 @@ def print_overall_stats(overall_stats):
     print("Overall Statistics")
     print("="*60)
     print(f"Total puzzles processed:     {overall_stats['total']:,}")
+    
+    # Handle empty files (no puzzles processed)
+    if overall_stats['total'] == 0:
+        print("No puzzles found in this file.")
+        return
+    
     print(f"Successfully solved:        {overall_stats['solved']:,} ({overall_stats['solved']/overall_stats['total']*100:.2f}%)")
     print(f"Failed to solve:            {overall_stats['failed']:,} ({overall_stats['failed']/overall_stats['total']*100:.2f}%)")
     print(f"Correct solutions:          {overall_stats['correct']:,} ({overall_stats['correct']/overall_stats['total']*100:.2f}%)")
@@ -330,7 +336,7 @@ if __name__ == "__main__":
         'results_csv',
         nargs='?',
         default=None,
-        help='Path to a specific results CSV file (optional). If not provided, processes all CSV files in the results directory.'
+        help='Path to a specific results CSV file or a directory containing CSV files (optional). If not provided, processes all CSV files in the results directory.'
     )
     parser.add_argument(
         '--results-dir',
@@ -352,37 +358,51 @@ if __name__ == "__main__":
     
     # Determine which files to process
     if args.results_csv:
-        # Process single file
-        if not os.path.exists(args.results_csv):
-            print(f"Error: File not found: {args.results_csv}", file=sys.stderr)
+        # Check if the provided path is a directory or a file
+        if os.path.isdir(args.results_csv):
+            # Process all CSV files in the provided directory
+            results_dir = args.results_csv
+        elif os.path.isfile(args.results_csv):
+            # Process single file
+            process_single_file(args.results_csv, args.summary_only, args.no_save)
+            sys.exit(0)
+        else:
+            print(f"Error: Path not found: {args.results_csv}", file=sys.stderr)
             sys.exit(1)
-        process_single_file(args.results_csv, args.summary_only, args.no_save)
     else:
         # Process all CSV files in results directory
         script_dir = os.path.dirname(os.path.abspath(__file__))
         project_root = os.path.dirname(script_dir)  # Go up one level from csp/
         results_dir = os.path.join(project_root, args.results_dir)
-        
-        if not os.path.exists(results_dir):
-            print(f"Error: Results directory not found: {results_dir}", file=sys.stderr)
-            sys.exit(1)
-        
-        # Find all CSV files in results directory
-        csv_pattern = os.path.join(results_dir, '*.csv')
-        csv_files = sorted(glob.glob(csv_pattern))
-        
-        if not csv_files:
-            print(f"No CSV files found in {results_dir}", file=sys.stderr)
-            sys.exit(1)
-        
-        print(f"Found {len(csv_files)} CSV file(s) in {results_dir}")
-        print("Processing each file separately...\n")
-        
-        # Process each CSV file
-        for csv_file in csv_files:
-            process_single_file(csv_file, args.summary_only, args.no_save)
-        
-        print(f"\n{'='*60}")
-        print(f"Completed processing {len(csv_files)} file(s)")
-        print("="*60)
+    
+    # Process all CSV files in the directory
+    if not os.path.exists(results_dir):
+        print(f"Error: Results directory not found: {results_dir}", file=sys.stderr)
+        sys.exit(1)
+    
+    # Find all CSV files in results directory (including subdirectories)
+    csv_pattern = os.path.join(results_dir, '**', '*.csv')
+    csv_files = sorted(glob.glob(csv_pattern, recursive=True))
+    
+    # Also check for CSV files directly in the directory (non-recursive)
+    csv_pattern_direct = os.path.join(results_dir, '*.csv')
+    csv_files_direct = glob.glob(csv_pattern_direct)
+    
+    # Combine and deduplicate
+    csv_files = sorted(set(csv_files + csv_files_direct))
+    
+    if not csv_files:
+        print(f"No CSV files found in {results_dir}", file=sys.stderr)
+        sys.exit(1)
+    
+    print(f"Found {len(csv_files)} CSV file(s) in {results_dir}")
+    print("Processing each file separately...\n")
+    
+    # Process each CSV file
+    for csv_file in csv_files:
+        process_single_file(csv_file, args.summary_only, args.no_save)
+    
+    print(f"\n{'='*60}")
+    print(f"Completed processing {len(csv_files)} file(s)")
+    print("="*60)
 

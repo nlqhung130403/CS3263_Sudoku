@@ -1,0 +1,62 @@
+
+============================================================
+Processing results from: results/25x25_glucose3_results_20251110_170037.csv
+Computing metrics...
+
+============================================================
+CPU Time (sec)
+============================================================
+                     Glucose3       
+------------------------------------------------------------
+Easy:
+  Minimum:           0.427961       
+  Median:            0.432094       
+  Mean:              0.432094       
+  Maximum:           0.436227       
+------------------------------------------------------------
+Medium:
+  Minimum:           0.438119       
+  Median:            0.438119       
+  Mean:              0.438119       
+  Maximum:           0.438119       
+------------------------------------------------------------
+Hard:
+  Minimum:           0.438154       
+  Median:            0.444054       
+  Mean:              0.443219       
+  Maximum:           0.446614       
+============================================================
+
+Note: Statistics based on 7 successfully solved puzzles
+  Easy: 2 puzzles
+  Medium: 1 puzzles
+  Hard: 4 puzzles
+
+============================================================
+Overall Statistics
+============================================================
+Total puzzles processed:     7
+Successfully solved:        7 (100.00%)
+Failed to solve:            0 (0.00%)
+Correct solutions:          0 (0.00%)
+Incorrect solutions:        7 (100.00%)
+Solution accuracy:          0.00%
+
+------------------------------------------------------------
+Overall Timing Statistics (seconds)
+------------------------------------------------------------
+Mean solve time:            0.439312
+Median solve time:          0.438154
+Min solve time:             0.427961
+Max solve time:             0.446614
+Standard deviation:         0.006391
+
+Percentiles:
+  25th percentile (Q1):      0.436227
+  50th percentile (median):  0.438154
+  75th percentile (Q3):     0.445733
+  90th percentile:           0.446614
+  95th percentile:           0.446614
+  99th percentile:           0.446614
+
+============================================================

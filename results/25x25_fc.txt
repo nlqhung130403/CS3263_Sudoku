@@ -1,0 +1,60 @@
+
+============================================================
+Processing results from: results/25x25_fc.csv
+Computing metrics...
+
+============================================================
+CPU Time (sec)
+============================================================
+                     Backtracking   
+------------------------------------------------------------
+Easy:
+  Minimum:           0.129788       
+  Median:            1104.103486    
+  Mean:              1104.103486    
+  Maximum:           2208.077183    
+------------------------------------------------------------
+Medium:
+  Minimum:           0.000000       
+  Median:            0.000000       
+  Mean:              0.000000       
+  Maximum:           0.000000       
+------------------------------------------------------------
+Hard:
+  Minimum:           0.000000       
+  Median:            0.000000       
+  Mean:              0.000000       
+  Maximum:           0.000000       
+============================================================
+
+Note: Statistics based on 2 successfully solved puzzles
+  Easy: 2 puzzles
+
+============================================================
+Overall Statistics
+============================================================
+Total puzzles processed:     2
+Successfully solved:        2 (100.00%)
+Failed to solve:            0 (0.00%)
+Correct solutions:          2 (100.00%)
+Incorrect solutions:        0 (0.00%)
+Solution accuracy:          100.00%
+
+------------------------------------------------------------
+Overall Timing Statistics (seconds)
+------------------------------------------------------------
+Mean solve time:            1104.103486
+Median solve time:          1104.103486
+Min solve time:             0.129788
+Max solve time:             2208.077183
+Standard deviation:         1561.254576
+
+Percentiles:
+  25th percentile (Q1):      0.129788
+  50th percentile (median):  2208.077183
+  75th percentile (Q3):     2208.077183
+  90th percentile:           2208.077183
+  95th percentile:           2208.077183
+  99th percentile:           2208.077183
+
+============================================================

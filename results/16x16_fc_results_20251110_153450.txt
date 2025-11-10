@@ -1,0 +1,62 @@
+
+============================================================
+Processing results from: results/16x16_fc_results_20251110_153450.csv
+Computing metrics...
+
+============================================================
+CPU Time (sec)
+============================================================
+                     FC (Forward Checking)
+------------------------------------------------------------
+Easy:
+  Minimum:           0.032173       
+  Median:            0.088560       
+  Mean:              0.074936       
+  Maximum:           0.104076       
+------------------------------------------------------------
+Medium:
+  Minimum:           0.037811       
+  Median:            0.490351       
+  Mean:              0.384422       
+  Maximum:           0.625105       
+------------------------------------------------------------
+Hard:
+  Minimum:           0.032625       
+  Median:            24.962286      
+  Mean:              91.883271      
+  Maximum:           441.592670     
+============================================================
+
+Note: Statistics based on 12 successfully solved puzzles
+  Easy: 3 puzzles
+  Medium: 3 puzzles
+  Hard: 6 puzzles
+
+============================================================
+Overall Statistics
+============================================================
+Total puzzles processed:     15
+Successfully solved:        12 (80.00%)
+Failed to solve:            3 (20.00%)
+Correct solutions:          10 (66.67%)
+Incorrect solutions:        2 (13.33%)
+Solution accuracy:          83.33%
+
+------------------------------------------------------------
+Overall Timing Statistics (seconds)
+------------------------------------------------------------
+Mean solve time:            46.056475
+Median solve time:          0.309543
+Min solve time:             0.032173
+Max solve time:             441.592670
+Standard deviation:         126.212194
+
+Percentiles:
+  25th percentile (Q1):      0.088560
+  50th percentile (median):  0.490351
+  75th percentile (Q3):     45.860001
+  90th percentile:           59.621022
+  95th percentile:           441.592670
+  99th percentile:           441.592670
+
+============================================================
