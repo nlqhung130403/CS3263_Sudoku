@@ -1,0 +1,188 @@
+\section{Constraint Satisfaction Problems}
+
+\subsection{CSP Formulation for Sudoku}
+
+A Constraint Satisfaction Problem (CSP) consists of three components: $X$, $D$, and $C$.
+
+\subsubsection{Variables ($X$)}
+The set of variables is defined as $X = \{X_1, \ldots, X_n\}$. For a standard $9 \times 9$ Sudoku puzzle, we have $n = 81$ variables, where each variable $X_i$ represents a cell in the Sudoku grid. In our implementation, each variable is represented as a tuple $(i, j)$ denoting the row and column position, where $i, j \in \{0, \ldots, 8\}$.
+
+\subsubsection{Domains ($D$)}
+The domain $D = \{D_1, \ldots, D_n\}$ contains one domain $D_i$ for each variable $X_i$. Each domain $D_i$ is a set of allowable values $\{v_1, \ldots, v_k\}$ for variable $X_i$. In Sudoku, the domain for each unassigned cell is $D_i = \{1, \ldots, 9\}$. For pre-filled cells (given clues), the domain contains only the single assigned value.
+
+\subsubsection{Constraints ($C$)}
+The constraint set $C = \{C_1, \ldots, C_m\}$ defines relationships over variables in $X$ with their domains $D$. Each constraint $C_i$ is defined as $\langle \text{scope}, \text{rel} \rangle$, where:
+\begin{itemize}
+    \item \textbf{scope}: A tuple of variables involved in the constraint
+    \item \textbf{rel}: A relation that defines which value tuples satisfy the constraint. This can be an explicit set of all satisfying tuples, or a function that computes whether a tuple is a member of the relation.
+\end{itemize}
+
+In Sudoku, we model the constraints using binary ``not equal'' constraints. Each cell must differ from its 20 peers (cells in the same row, column, or $3 \times 3$ box). This results in approximately $81 \times 20 / 2 = 810$ undirected edges, or $1{,}620$ directed arcs in the constraint graph. The constraint function $C(X_i, v_i, X_j, v_j)$ returns \texttt{True} if and only if $v_i \neq v_j$ when $X_i$ and $X_j$ are neighbors.
+
+\subsection{Implementation Overview}
+
+Our Sudoku CSP solver is implemented in Python and follows the standard backtracking search framework with constraint propagation. The main components are:
+
+\subsubsection{CSP Representation}
+The \texttt{CSP} class encapsulates the problem structure:
+\begin{itemize}
+    \item \texttt{variables}: List of all 81 cell positions
+    \item \texttt{domains}: Dictionary mapping each variable to its domain of possible values
+    \item \texttt{neighbors}: Dictionary mapping each variable to its list of neighboring variables (20 peers per cell)
+    \item \texttt{constraints}: A function that checks if a value assignment satisfies the constraint between two variables
+\end{itemize}
+
+The \texttt{create\_sudoku\_csp()} function constructs the CSP instance from a puzzle string by:
+\begin{enumerate}
+    \item Parsing the 81-character puzzle string into a $9 \times 9$ grid
+    \item Creating variables for all 81 cells
+    \item Initializing domains: pre-filled cells have single-value domains, empty cells have domain $\{1, \ldots, 9\}$
+    \item Building the neighbor relationships: for each cell, identifying all cells in the same row, column, or $3 \times 3$ box
+    \item Defining the binary constraint function that enforces $v_i \neq v_j$ for neighboring cells
+\end{enumerate}
+
+\subsubsection{Backtracking Search Algorithm}
+
+The core search algorithm follows the standard backtracking framework shown in Algorithm~\ref{alg:backtrack}. The \texttt{backtracking\_search()} function implements this recursive procedure:
+
+\textbf{Key Ideas:} Backtracking search systematically explores the space of possible assignments by building a partial solution incrementally. At each recursive call, the algorithm checks if the current assignment is complete (all 81 cells filled). If not, it selects an unassigned variable using a heuristic (typically MRV), then tries each legal value for that variable in order (typically using LCV). For each value, it checks consistency with the current assignment, then makes the assignment and performs constraint propagation (inference) to prune inconsistent values from other variables' domains. If inference succeeds (no domain becomes empty), it recursively continues the search. If the recursive call returns a solution, that solution is propagated back up. If no solution is found with the current value, the algorithm backtracks by undoing the inference (restoring pruned values) and unassigning the variable, then tries the next value. This process continues until either a complete solution is found or all possibilities are exhausted. The key insight is that backtracking allows the algorithm to efficiently explore the search space by abandoning partial assignments that cannot lead to a solution, rather than exhaustively enumerating all possible complete assignments.
+
+
+% \begin{algorithm}[htbp]
+% \caption{Backtracking Search for CSP}
+% \label{alg:backtrack}
+% \begin{algorithmic}[1]
+% \Function{BACKTRACK}{csp, assignment}
+%     \If{assignment is complete}
+%         \State \Return assignment
+%     \EndIf
+%     \State $var \gets$ \Call{SELECT-UNASSIGNED-VARIABLE}{csp, assignment}
+%     \For{each $value$ in \Call{ORDER-DOMAIN-VALUES}{csp, $var$, assignment}}
+%         \If{$value$ is consistent with assignment}
+%             \State add $\{var = value\}$ to assignment
+%             \State $inferences \gets$ \Call{INFERENCE}{csp, $var$, assignment}
+%             \If{$inferences \neq$ failure}
+%                 \State $result \gets$ \Call{BACKTRACK}{csp, assignment}
+%                 \If{$result \neq$ failure}
+%                     \State \Return $result$
+%                 \EndIf
+%                 \State remove $inferences$ from csp
+%             \EndIf
+%             \State remove $\{var = value\}$ from assignment
+%         \EndIf
+%     \EndFor
+%     \State \Return failure
+% \EndFunction
+% \end{algorithmic}
+% \end{algorithm}
+
+
+\subsubsection{Heuristics}
+
+To improve search efficiency, we employ two key heuristics:
+
+\textbf{Minimum Remaining Values (MRV):} The \texttt{mrv()} function selects the unassigned variable with the fewest remaining legal values. This reduces the branching factor by prioritizing constrained variables, leading to earlier failure detection. The intuition is that variables with fewer remaining values are more constrained and more likely to lead to dead ends quickly if no solution exists. By trying these first, the algorithm can detect failures early in the search tree, avoiding wasted exploration of large subtrees. In Sudoku, MRV naturally identifies cells that are ``forced'' by the current state---cells where only one or two values remain legal. These cells are excellent candidates for assignment because they represent the most constrained choices.
+
+\textbf{Least Constraining Value (LCV):} The \texttt{lcv()} function orders domain values by the number of conflicts they create with unassigned variables. Values that rule out fewer options for other variables are tried first, keeping more possibilities open for future assignments. The heuristic computes conflicts by counting how many values in neighboring unassigned variables' domains would become illegal if the current variable takes a particular value. The key insight is that choosing values that preserve more options for other variables increases the likelihood that the current partial assignment can be extended to a complete solution. This is particularly effective when combined with MRV: after selecting a highly constrained variable, LCV helps choose values that don't overly constrain the remaining variables, maintaining flexibility in the search.
+
+\subsubsection{Constraint Propagation: Forward Checking and MAC}
+
+The \texttt{INFERENCE} step in backtracking search performs constraint propagation to prune inconsistent values. We implement two methods:
+
+\textbf{Forward Checking (FC):} The \texttt{forward\_checking()} function, shown in Algorithm~\ref{alg:fc}, prunes values from the domains of unassigned neighbors that are inconsistent with the current assignment. After assigning $var = value$, it checks each neighbor $B$ and removes any value $b$ from $B$'s domain that violates the constraint with $(var, value)$.
+
+\textbf{Key Ideas:} Forward checking performs \emph{local} constraint propagation immediately after each assignment. The algorithm iterates through all neighbors of the newly assigned variable. For each unassigned neighbor $B$, it examines every value $b$ in $B$'s current domain. If the constraint between $(var, value)$ and $(B, b)$ is violated (in Sudoku, this means $value = b$), then $b$ is pruned from $B$'s domain. This pruning is recorded in a removals list so it can be undone during backtracking. If any neighbor's domain becomes empty after pruning, forward checking immediately returns failure, signaling that the current assignment cannot lead to a solution. This early failure detection is crucial for efficient backtracking. The key limitation of FC is that it only checks direct neighbors of the assigned variable; it does not propagate constraints further through the network. However, for Sudoku's binary constraint structure, this local pruning is often sufficient because the most informative constraint violations occur immediately between neighboring cells.
+
+
+\begin{algorithm}[htbp]
+\caption{Forward Checking}
+\label{alg:fc}
+\begin{algorithmic}[1]
+\Function{FORWARD-CHECKING}{csp, $var$, $value$, assignment, removals}
+    \For{each unassigned neighbor $B$ of $var$}
+        \For{each $b$ in \Call{CURR-DOMAINS}{csp, $B$}}
+            \If{not \Call{CONSTRAINTS}{csp, $var$, $value$, $B$, $b$}}
+                \State \Call{PRUNE}{csp, $B$, $b$, removals}
+            \EndIf
+        \EndFor
+        \If{\Call{CURR-DOMAINS}{csp, $B$} is empty}
+            \State \Return false
+        \EndIf
+    \EndFor
+    \State \Return true
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+
+\textbf{Maintaining Arc Consistency (MAC):} The \texttt{mac()} function maintains arc consistency across the entire residual constraint network. In our implementation, MAC uses AC-3b (an improved variant of AC-3 with double-support domain-heuristic) as the default constraint propagation algorithm. AC-3b optimizes the arc consistency checking process by prioritizing double-support checks, where both variables benefit from the same constraint check. After each assignment, MAC initializes a queue with arcs $(X, var)$ for all neighbors $X$ of the assigned variable, then propagates constraints using AC-3b until no further pruning is possible.
+
+\textbf{Key Ideas:} MAC enforces \emph{global} arc consistency on the entire constraint network after each assignment. An arc $(X_i, X_j)$ is arc-consistent if for every value $x$ in $X_i$'s domain, there exists at least one value $y$ in $X_j$'s domain such that the constraint between $(X_i, x)$ and $(X_j, y)$ is satisfied. MAC uses AC-3b to achieve this: it maintains a queue of arcs that need to be checked for consistency. When an arc $(X_i, X_j)$ is processed, the algorithm revises $X_i$'s domain by removing any value $x$ that has no supporting value in $X_j$'s domain. If $X_i$'s domain changes, all arcs pointing to $X_i$ (i.e., $(X_k, X_i)$ for neighbors $X_k$) are added back to the queue, since those arcs may now be inconsistent. This process continues until the queue is empty or a domain becomes empty (indicating inconsistency).
+
+\textbf{AC-3b Double-Support Heuristic:} AC-3b improves upon AC-3 by using a ``double-support'' optimization. When checking if a value $v_i$ in $X_i$'s domain has support in $X_j$'s domain, AC-3b partitions $X_j$'s domain into three sets: $S_{j,p}$ (values already known to be supported by $X_i$), $S_{j,u}$ (unknown support status), and values already pruned. The algorithm first checks values in $S_{j,u}$ against $v_i$ because finding support here benefits both variables simultaneously (double-support check). Only if no support is found in $S_{j,u}$ does it check values in $S_{j,p}$ (single-support check). This ordering reduces redundant constraint checks and can improve average-case performance, though the worst-case complexity remains $O(ed^2)$ where $e$ is the number of arcs and $d$ is the domain size. Additionally, AC-3b processes arcs bidirectionally: when revising arc $(X_i, X_j)$, it also checks and potentially revises arc $(X_j, X_i)$ if it's in the queue, further propagating constraints efficiently.
+
+\begin{algorithm}[htbp]
+\caption{Maintaining Arc Consistency (MAC)}
+\label{alg:mac}
+\begin{algorithmic}[1]
+\Function{MAC}{csp, $var$, $value$, assignment, removals}
+    \State $queue \gets \{(X, var) \mid X \in \Call{NEIGHBORS}{csp, $var$}\}$
+    \State \Return \Call{AC-3B}{csp, $queue$, removals}
+\EndFunction
+\Statex
+\Function{AC-3B}{csp, $queue$, removals}
+    \While{$queue$ is not empty}
+        \State $(X_i, X_j) \gets queue.pop()$
+        \State $revised \gets$ \Call{REVISE}{csp, $X_i$, $X_j$, removals}
+        \If{$revised$}
+            \If{\Call{CURR-DOMAINS}{csp, $X_i$} is empty}
+                \State \Return false
+            \EndIf
+            \For{each neighbor $X_k$ of $X_i$ where $X_k \neq X_j$}
+                \State $queue.add((X_k, X_i))$
+            \EndFor
+        \EndIf
+    \EndWhile
+    \State \Return true
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Forward Checking vs. Maintaining Arc Consistency}
+
+For a standard $9 \times 9$ Sudoku puzzle modeled with binary constraints, Forward Checking (FC) and Maintaining Arc Consistency (MAC) exhibit significantly different computational costs with minimal difference in pruning effectiveness.
+
+\subsubsection{Computational Cost Comparison}
+
+\textbf{Forward Checking per assignment:} After assigning a value to one cell, FC revises exactly 20 neighbors of that cell. For each neighbor $B$, FC checks all values $b$ in $B$'s domain (at most 9 values) against the assigned value. The exact upper bound is $20 \times 9 = 180$ constraint checks per assignment. In practice, FC performs exactly 180 checks in the worst case when all neighbors have full domains.
+
+\textbf{MAC per assignment:} MAC enforces arc consistency on the entire residual network after each assignment using AC-3b. The worst-case cost follows the same order-of-magnitude analysis as AC-3: $e \cdot d^2$ support checks per propagation, where $e$ is the number of arcs and $d$ is the domain size. For Sudoku: $e = 1{,}620$ directed arcs (81 cells $\times$ 20 neighbors) and $d = 9$, giving $d^2 = 81$. The exact upper bound is $1{,}620 \times 81 = 131{,}220$ support checks per propagation. While AC-3b's double-support heuristic can reduce the average number of checks per arc, the worst-case bound remains the same. With re-queuing in AC-3b, arcs may be processed multiple times, potentially increasing this bound, but $131{,}220$ represents the worst-case cost for processing all arcs once with full domains.
+
+\subsubsection{Why MAC's Extra Pruning Rarely Pays Off}
+
+Despite its higher computational cost, MAC provides little additional pruning beyond FC for Sudoku with binary constraints. The key reasons are:
+
+\textbf{1. Locality of useful pruning:} In Sudoku, the informative propagation after an assignment is almost entirely local to the 20 direct peers (same row/column/box). FC already performs exactly this local pruning. Enforcing arc consistency between pairs of unassigned cells not directly affected by the new assignment typically finds no new deletions.
+
+\textbf{2. Weakness of AC on decomposed AllDifferent constraints:} When row/column/box AllDifferent constraints are decomposed into 36 pairwise ``$\neq$'' binary constraints, arc consistency cannot detect more complex inconsistencies like Hall sets or ``hidden singles'' across the group. MAC does not recover the global power of true Generalized Arc Consistency (GAC) for AllDifferent constraints. As a result, MAC's global AC mostly repeats what FC already accomplished, with little extra pruning.
+
+\textbf{3. Good heuristics reduce backtracking:} With MRV/degree and LCV heuristics, the solver quickly identifies nearly forced cells, leading to few backtracks and shallow failures. In such scenarios, MAC's heavy propagation that might save deep backtracking is simply not needed.
+
+\textbf{4. Cost-per-node dominates:} Even if MAC explores fewer nodes in the search tree, the per-node cost is so much higher that wall-clock time is worse. FC's nodes are cheap: exactly 180 constraint checks per assignment. MAC requires at least 131,220 support checks per assignment---over 700 times more expensive.
+
+\subsubsection{Quantified Comparison}
+
+The performance difference can be summarized with exact upper bounds:
+\begin{itemize}
+    \item FC per move: \textbf{exactly 180} constraint checks (upper bound: $20 \times 9 = 180$)
+    \item MAC per move: \textbf{at least 131,220} support checks (upper bound: $1{,}620 \times 81 = 131{,}220$)
+\end{itemize}
+
+This represents a ratio of approximately $131{,}220 / 180 \approx 729$, meaning MAC performs over 700 times more constraint checks than FC per assignment in the worst case.
+
+Unless switching to true GAC(AllDifferent) constraints (which represents a different propagation regime), the extra AC work in MAC is mostly overhead for binary-encoded Sudoku CSPs.
+
+\subsubsection{Conclusion}
+
+For a $9 \times 9$ Sudoku with binary ``$\neq$'' constraints, Forward Checking already performs the useful local pruning after each assignment efficiently. MAC spends orders of magnitude more time enforcing global arc consistency that, in this model, adds little pruning benefit. This explains why FC is often significantly faster in practice for standard Sudoku solvers built on binary CSPs.
+
