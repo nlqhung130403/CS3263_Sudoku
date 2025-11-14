@@ -17,7 +17,26 @@ The constraint set $C = \{C_1, \ldots, C_m\}$ defines relationships over variabl
     \item \textbf{rel}: A relation that defines which value tuples satisfy the constraint. This can be an explicit set of all satisfying tuples, or a function that computes whether a tuple is a member of the relation.
 \end{itemize}
 
-In Sudoku, we model the constraints using binary ``not equal'' constraints. Each cell must differ from its 20 peers (cells in the same row, column, or $3 \times 3$ box). This results in approximately $81 \times 20 / 2 = 810$ undirected edges, or $1{,}620$ directed arcs in the constraint graph. The constraint function $C(X_i, v_i, X_j, v_j)$ returns \texttt{True} if and only if $v_i \neq v_j$ when $X_i$ and $X_j$ are neighbors.
+For Sudoku, we model the constraints using binary ``not equal'' constraints. The constraint set $C$ is formally defined as:
+\[
+C = \{C_{i,j} : X_i, X_j \in X \text{ and } X_i \text{ and } X_j \text{ are neighbors}\}
+\]
+where each binary constraint $C_{i,j}$ has:
+\begin{itemize}
+    \item \textbf{scope}: $(X_i, X_j)$
+    \item \textbf{relation}: $\{(v_i, v_j) \in D_i \times D_j : v_i \neq v_j\}$
+\end{itemize}
+
+Two variables $X_i = (r_i, c_i)$ and $X_j = (r_j, c_j)$ are neighbors if and only if they satisfy at least one of the following conditions:
+\begin{enumerate}
+    \item Same row: $r_i = r_j$ and $c_i \neq c_j$
+    \item Same column: $c_i = c_j$ and $r_i \neq r_j$
+    \item Same box: $\lfloor r_i / b \rfloor = \lfloor r_j / b \rfloor$ and $\lfloor c_i / b \rfloor = \lfloor c_j / b \rfloor$ and $(r_i, c_i) \neq (r_j, c_j)$, where $b = \sqrt{N}$ is the box size
+\end{enumerate}
+
+For a standard $9 \times 9$ Sudoku puzzle ($N = 9$, $n = N^2 = 81$), each cell has exactly 20 neighbors (8 in the same row, 8 in the same column, and 4 additional cells in the same $3 \times 3$ box, excluding the cell itself and cells already counted in the row/column). This results in $81 \times 20 / 2 = 810$ undirected constraint edges, or $1{,}620$ directed arcs in the constraint graph.
+
+The constraint function $C(X_i, v_i, X_j, v_j)$ returns \texttt{True} if and only if $v_i \neq v_j$ when $X_i$ and $X_j$ are neighbors, and \texttt{False} otherwise.
 
 \subsection{Implementation Overview}
 
@@ -199,6 +218,8 @@ The \texttt{INFERENCE} step in backtracking search performs constraint propagati
 % \textbf{Key Ideas:} MAC enforces \emph{global} arc consistency on the entire constraint network after each assignment. An arc $(X_i, X_j)$ is arc-consistent if for every value $x$ in $X_i$'s domain, there exists at least one value $y$ in $X_j$'s domain such that the constraint between $(X_i, x)$ and $(X_j, y)$ is satisfied. MAC uses AC-3b to achieve this: it maintains a queue of arcs that need to be checked for consistency. When an arc $(X_i, X_j)$ is processed, the algorithm revises $X_i$'s domain by removing any value $x$ that has no supporting value in $X_j$'s domain. If $X_i$'s domain changes, all arcs pointing to $X_i$ (i.e., $(X_k, X_i)$ for neighbors $X_k$) are added back to the queue, since those arcs may now be inconsistent. This process continues until the queue is empty or a domain becomes empty (indicating inconsistency).
 
 \textbf{AC-3b Double-Support Heuristic:} AC-3b improves upon AC-3 by using a ``double-support'' optimization. When checking if a value $v_i$ in $X_i$'s domain has support in $X_j$'s domain, AC-3b partitions $X_j$'s domain into three sets: $S_{j,p}$ (values already known to be supported by $X_i$), $S_{j,u}$ (unknown support status), and values already pruned. The algorithm first checks values in $S_{j,u}$ against $v_i$ because finding support here benefits both variables simultaneously (double-support check). Only if no support is found in $S_{j,u}$ does it check values in $S_{j,p}$ (single-support check). This ordering reduces redundant constraint checks and can improve average-case performance, though the worst-case complexity remains $O(ed^2)$ where $e$ is the number of arcs and $d$ is the domain size. Additionally, AC-3b processes arcs bidirectionally: when revising arc $(X_i, X_j)$, it also checks and potentially revises arc $(X_j, X_i)$ if it's in the queue, further propagating constraints efficiently.
+
+\textbf{Arc Re-enqueuing Mechanism:} In both AC-3 and AC-3b, when values are deleted from a variable's domain during revision, arcs pointing to that variable must be re-enqueued for re-examination. Specifically, when $D(X_i)$ is revised (values pruned), all arcs $(X_k, X_i)$ for neighbors $X_k \neq X_j$ are added back to the queue (lines 185--187 in AC-3, lines 232--234 and 257--259 in AC-3b). This is necessary because the domain reduction may have invalidated previously established support relationships. Since a domain $D(X_i)$ contains at most $d$ values, and each value deletion could potentially cause a revision, an arc $(X_k, X_i)$ can be re-enqueued and reprocessed up to $d$ times in the worst case. This re-enqueuing mechanism ensures that arc consistency is maintained throughout the constraint network as domains shrink during propagation.
 
 \subsection{Forward Checking vs. Maintaining Arc Consistency}
 
